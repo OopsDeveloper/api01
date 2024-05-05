@@ -19,6 +19,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.zerock.api01.security.APIUserDetailsService;
+import org.zerock.api01.security.filter.APILoginFilter;
 
 import java.util.Arrays;
 
@@ -29,6 +31,9 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 
 public class CustomSecurityConfig {
+
+    //주입
+    private final APIUserDetailsService apiUserDetailsService;
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -43,6 +48,25 @@ public class CustomSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
+
+        //AuthenticationManager 설정
+        AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
+
+        authenticationManagerBuilder.userDetailsService(apiUserDetailsService)
+                .passwordEncoder(passwordEncoder());
+
+        //Get AuthenticationManager
+        AuthenticationManager authenticationManager = authenticationManagerBuilder.build();
+
+        //반드시 필요
+        http.authenticationManager(authenticationManager);
+
+        //APILoginFilter
+        APILoginFilter apiLoginFilter = new APILoginFilter("/generateToken");
+        apiLoginFilter.setAuthenticationManager(authenticationManager);
+
+        //APILoginFIlter 위치조정
+        http.addFilterBefore(apiLoginFilter, UsernamePasswordAuthenticationFilter.class);
 
         http.csrf().disable(); //csrf 토큰 비활성화
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS); // 세션을 사용x
