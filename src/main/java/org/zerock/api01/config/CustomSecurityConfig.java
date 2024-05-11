@@ -57,14 +57,14 @@ public class CustomSecurityConfig {
                 .passwordEncoder(passwordEncoder());
 
         //Get AuthenticationManager
-        AuthenticationManager authenticationManager = authenticationManagerBuilder.build();
+        AuthenticationManager apiAuthenticationManager = authenticationManagerBuilder.build();
 
         //반드시 필요
-        http.authenticationManager(authenticationManager);
+        http.authenticationManager(apiAuthenticationManager);
 
         //APILoginFilter
         APILoginFilter apiLoginFilter = new APILoginFilter("/generateToken");
-        apiLoginFilter.setAuthenticationManager(authenticationManager);
+        apiLoginFilter.setAuthenticationManager(apiAuthenticationManager);
 
         //APILoginSuccessHandler
         APILoginSuccessHandler successHandler = new APILoginSuccessHandler();
